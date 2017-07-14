@@ -1,4 +1,5 @@
-function Class(members)
+local module = 
+function (members)
   members = members or {}
   local mt = {
     __metatable = members;
@@ -16,3 +17,5 @@ function Class(members)
   members.copy = members.copy or copy
   return mt
 end
+
+return module

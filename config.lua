@@ -2,7 +2,7 @@
 local module = {}
 
 module.name = "cianofita"
-module.id = "one"
+module.id = "three"
 
 module.sta_cfg = {}  
 module.sta_cfg.ssid = "peanuts"
@@ -16,11 +16,13 @@ module.mqtt.port = 1883
 module.mqtt.endpoint = "fitoplancton/"  
 
 module.timezone=-3
-module.ntp = "pool.ntp.org"
+module.ntp = "129.6.15.30"
   
 module.mqtt.ID = module.id.."."..module.name
 
 module.dht_pin = 4 
+
+module.relay_pins = {1,5,6,7}
   
 module.OLED = {}
 module.OLED["SDA"] = 3;

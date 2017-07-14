@@ -1,12 +1,16 @@
-require("class")
-require("schedule")
-Relay = {}
-local Relay_mt = Class(Relay)
+Class = dofile("class.lc")
+--dofile("schedule.lua")
 
-function Relay:start(pin,tz)
+--Relay.MOD_NAME="Relay"..tostring(pin)
+local Relay = {} 
+local Relay_mt = Class(Relay)
+Class = nil
+
+
+function Relay:create(pin,tz)
     self = setmetatable({}, Relay_mt)
-    self.pin = pin
-    self.scheduleObj = Schedule:new(self.pin,tz)
+    self.pin = tostring(pin)
+    self.tz = tz
     self.cmdTable = {}
     self.cmdTable["on"] = function(data) return self:on(data) end
     self.cmdTable["off"] = function(data) return self:off(data) end
@@ -22,7 +26,7 @@ function Relay:start(pin,tz)
         starth,startm,stoph,stopm = nil
     end
         
-    print("creating relay on pin "..self.pin)
+    print("creating relay on pin "..tostring(self.pin))
     local fd = file.open(tostring(self.pin)..".schedule", "r")
    
     if fd then
@@ -40,12 +44,7 @@ function Relay:getStatus(data)
 end
 
 function Relay:off(data)
-    print("turn off relay pin "..self.pin)
-   local z = tonumber(data)
-   if(z~=nil) then
-    if(z>0) then self:offFor(z) return end
-   end
-   z = nil
+   print("turn off relay pin "..self.pin)
    gpio.write(self.pin,gpio.HIGH)
    gpio.mode(self.pin,gpio.INPUT,gpio.PULLUP)
    self.status = false
@@ -53,12 +52,14 @@ function Relay:off(data)
 end
 
 function Relay:on(data)
-    print("turn on relay pin "..self.pin)
+ 
    local z = tonumber(data)
    if(z~=nil) then
     if(z>0) then self:onFor(z) return end
    end
    z = nil
+   
+   print("turn on relay pin "..self.pin)
    gpio.mode(self.pin,gpio.OUTPUT,gpio.PULLDOWN)
    gpio.write(self.pin,gpio.LOW)
    self.status = true
@@ -66,18 +67,59 @@ function Relay:on(data)
 
 end
 
-function Relay:schedule(starth,startm,stoph,stopm)
-      self.scheduleObj:add(starth,startm,stoph,stopm, 
-      function()
-        print("relay "..tostring(self.pin).." running scheduled action self.on()")
-        self:on()
-        end,
-      function()
-      print("relay "..tostring(self.pin).." stopped scheduled action self.off()")
-      self:off()
-      end
-      )
+function Relay:cancelSchedule()
+   self.scheduled=false
+   self.objCronStart:unschedule()
+   self.objCronStop:unschedule()
+   self.objCronStart=nil
+   self.objCronStop=nil
+   print("unscheduling on @"..self.startTime.." and off @"..self.stopTime);
+   collectgarbage()
 
+end
+
+
+function Relay:schedule(starth,startm,stoph,stopm)
+     if(self.scheduled==true) then
+      self:cancelSchedule()
+      self.objCronStart,self.objCronStop = nil
+      self.scheduled=false
+    end
+    print("scheduling relay "..self.pin.." @ "..starth..":"..startm.." and off @"..stoph..":"..stopm);
+    self.startTime= nil
+    self.startTime= nil
+    self.stopUserCb = nil
+    self.startTime = starth..":"..startm
+    self.stopTime = stoph..":"..stopm
+    local on_hour = tonumber(starth) 
+    local off_hour = tonumber(stoph)
+    local on_minute = tonumber(startm)
+    local off_minute = tonumber(stopm)
+    
+    util = dofile("useful.lua")
+    local hour,minute=util.getRTC(self.tz)
+    util = nil
+
+    if ( ((hour>on_hour) and (hour < off_hour)) ) or ( (hour==on_hour) and (minute>=on_minute) and (minute<off_minute) )
+        then    
+            self:on()
+       else
+            self:off()
+    end
+    
+    hour,minute = nil
+    
+    on_hour = on_hour - self.tz
+    off_hour = off_hour - self.tz
+
+    if(on_hour >= 24) then on_hour = on_hour-24 end
+    if(off_hour >= 24) then off_hour = off_hour-24 end
+   
+    self.objCronStart = cron.schedule(startm.." "..on_hour.." * * *", function() self:on() end)
+    self.objCronStop = cron.schedule(stopm.." "..off_hour.." * * *", function() self:off() end)
+    
+    self.scheduled = true
+      
     local fd =  file.open(tostring(self.pin)..".schedule", "w")
     if fd then
       fd:write(starth..":"..startm.."?"..stoph..":"..stopm)
@@ -87,21 +129,10 @@ function Relay:schedule(starth,startm,stoph,stopm)
 end
 
 function Relay:onFor(n)
-    self:on()
     print("turning relay "..tostring(self.pin).." for "..tostring(n).." seconds")
-    --local timer = require('timer_min')
+    self:on()
     local cb=function() self:off() end
-   tmr.create():alarm(n*1000, tmr.ALARM_SINGLE,cb)
-    --timer.setTimeout(cb, sec*1000)
+    tmr.create():alarm(n*1000, tmr.ALARM_SINGLE,cb)
 end
 
-function Relay:offFor(n)
-    self:off()
-    print("turning relay "..tostring(self.pin).." off for "..tostring(n).." seconds")
-    --local timer = require('timer_min')
-    local cb=function() self:on() end
-   tmr.create():alarm(n*1000, tmr.ALARM_SINGLE,cb)
-    --timer.setTimeout(cb, sec*1000)
-end
-
---return class
+return Relay

@@ -32,14 +32,14 @@ function module.okCallback(con)
         module.m:on("offline", function(client, topic, data)
             print("lost connection with mqtt server")
             module.m:close()
-            module.tmr:unregister()
+            if not (module.tr==nil) then module.tmr:unregister() end
             module.tmr = nil
             module.status=false
             module.do_mqtt_connect()
         end)
         
         module.m:on("message", function(conn, topic, data)
-         print("topic: "..topic)
+         --print("topic: "..topic)
          local path,num,cmd = module.getPath(topic)
         if data~=nil and module.dispatch[path] then
             module.dispatch[path](path,num,cmd,data)
@@ -64,7 +64,6 @@ end
 
 function module.start(config, sensors)
     print("configuring message subsystem")
-    print(node.heap());
     module.config = config
     module.m = {}
     module.m = mqtt.Client(module.config.ID, 120)
@@ -74,12 +73,12 @@ function module.start(config, sensors)
 end
 
 function module.controlrelay(path,num,cmd,data)
-        print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
+        --print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
         local x = relays[tonumber(num)]
         local ret = x.cmdTable[cmd](data)
         
         if(ret~=nil)then 
-            print("status return: ".. ret)
+            --print("status return: ".. ret)
             module.m:publish(path.."/"..num.."/status/return",ret,0,0)
             --print("d topic: "..path.." num "..num.." cmd "..cmd) end
             end

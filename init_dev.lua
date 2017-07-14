@@ -1,5 +1,4 @@
 -- file : init.lua
-app = require("application")  
 
-
-app.start()   
+app = dofile("application.lua")  
+tmr.create():alarm(2000,tmr.ALARM_SINGLE,app.start);   

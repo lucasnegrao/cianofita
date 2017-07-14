@@ -1,6 +1,8 @@
 -- util.lua
 local module = {}
 
+package.loaded[module]=nil
+
 function module.getRTC(tz)
    local function isleapyear(y) if ((y%4)==0) or (((y%100)==0) and ((y%400)==0)) == true then return 2 else return 1 end end
    local function daysperyear(y) if isleapyear(y)==2 then return 366 else return 365 end end           

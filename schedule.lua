@@ -1,13 +1,8 @@
-require("class")
-
-Schedule = {}
+Schedule = {}--flashMod("schedule")--{}
 local Schedule_mt = Class(Schedule)
 
 function Schedule:new(name,tz)
     self = setmetatable({}, Schedule_mt)
-    self.objCronStart = nil
-    self.objCronStop = nil
-    self.status = false
     self.scheduled=false
     self.name=name
     self.tz = tz
@@ -24,13 +19,10 @@ function Schedule:add(starth,startm,stoph,stopm,cbStart,cbStop)
     end
     print("scheduling on @"..starth..":"..startm.." and off @"..stoph..":"..stopm);
 
-    --self = setmetatable({}, Schedule_mt)
-
     self.startTime= nil
     self.startTime= nil
     self.stopUserCb = nil
     
-    self.status = false
     self.startTime = starth..":"..startm
     self.stopTime = stoph..":"..stopm
     self.startUserCb = cbStart
@@ -39,7 +31,7 @@ function Schedule:add(starth,startm,stoph,stopm,cbStart,cbStop)
     local on_hour = tonumber(starth) 
     local off_hour = tonumber(stoph)
 
-    util = require("useful")
+    util = dofile("useful.lua")
     
     local hour,minute=util.getRTC(self.tz)
 
@@ -83,16 +75,15 @@ print(node.heap())
    self.objCronStart=nil
    self.objCronStop=nil
    print("unscheduling on @"..self.startTime.." and off @"..self.stopTime);
+   collectgarbage()
+
 end
    
 function Schedule:startCb()
-        self.status="running"
-        --print("running schedule @", self.startTime)
         self.startUserCb()
 end
 
 function Schedule:stopCb()
         self.status="scheduled"
-        --print("stopping schedule @", self.stopTime)
         self.stopUserCb()
 end

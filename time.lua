@@ -1,15 +1,16 @@
 local module = {}
-
+local other_module= {}
 module.inSync = false
 
 function module.timeOKCallback(sec, usec, server, info)
   module.inSync = true
-  module.userOKCallback()
+  
   fd = file.open("lastGoodTime", "w+")
   if fd ~= nil then
     fd:write(rtctime.get())
     fd:close(); fd = nil
   end
+  module.userOKCallback()
 end
 
 function module.timeErrCallback(type,info)
@@ -35,21 +36,22 @@ function module.start(server,cb,tz)
       fd:close(); fd = nil
     else  print("no good time available...")
     end
-    
+
+    print("last sync time is "..other_module.getPrintable()) 
+  
     module.server = server
     module.do_sntp_connect()
     module.userOKCallback = cb;
 end
 
-function module.getPrintable()
-    if module.tz == nil or module.inSync == false then return "no time" end
+function other_module.getPrintable()
+    --if module.tz == nil or module.inSync == false then return "no time" end
     
-    util = require("useful")
-    hour,minute,second,month,day,year=util.getRTC(module.tz)
+    util = dofile("useful.lc")
+    hour,minute,second,month,day,year=util.getRTC(-3)--module.tz)
     util = nil
- if(module.inSync == true) then
   return string.format("%02d:%02d  %02d/%02d/%04d",hour,minute,month,day,year)
-  end
+
 end
 
-return module
+return module,other_module

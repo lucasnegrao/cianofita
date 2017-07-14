@@ -1,37 +1,29 @@
-local module = {}
+gpio.mode(8, gpio.OUTPUT)
+gpio.write(8, gpio.LOW)
 
-module.inSync = false
+function main()
+print("OFF");
+pwm.setup(8, 50, 0)
 
-function module.timeOKCallback(sec, usec, server, info)
-  module.inSync = true
-  module.userOKCallback()
-  fd = file.open("lastGoodTime", "w+")
-  if fd ~= nil then
-    fd:write(rtctime.get())
-    fd:close(); fd = nil
-  end
-end
-
-function module.timeErrCallback(type,info)
-    print("sntp sync failed with code "..type)
-    module.do_sntp_connect()
-end
-
-function module.do_sntp_connect()
-print("contacting NTP server @ "..module.server)
-     tmr.create():alarm(2000, tmr.ALARM_SINGLE, function ()
-        sntp.sync(module.server, module.timeOKCallback, module.timeErrCallback,true)
+    tmr.create():alarm(10000,tmr.ALARM_SINGLE,function()
+        print("250");
+        pwm.setduty(8, 250)
+        tmr.create():alarm(10000,tmr.ALARM_SINGLE,function()
+            print("512");
+            pwm.setduty(8, 512)
+            tmr.create():alarm(10000,tmr.ALARM_SINGLE,function()
+                print("1024");
+                pwm.setduty(8, 1023)
+                tmr.create():alarm(10000,tmr.ALARM_SINGLE,function()
+                    main()
+                    end)
+            end)
+        end)
     end)
 end
 
-    print("setting to last good time...")
-    fd = file.open("lastGoodTime", "r")
-    if fd then
-      rtctime.set(fd:read())
-      fd:close(); fd = nil
-    else  print("no good time available...")
-    end
-    
-    module.server = "pool.ntp.org"
-    module.do_sntp_connect()
-    module.userOKCallback = cb;
+main(1)
+
+--pin = 1
+--gpio.mode(pin, gpio.OUTPUT)
+--gpio.write(pin, gpio.HIGH)
