@@ -1,2 +1,2 @@
---print("ready> ");
+print("ready> ");
 dofile("init_dev.lua");

@@ -3,7 +3,7 @@ for k,v in pairs(l) do
   print("name:"..k..", size:"..v)
 end
 
-if file.open("1.schedule", "r") then
+if file.open("fan.auto", "r") then
   print(file.read())
   file.close()
 end

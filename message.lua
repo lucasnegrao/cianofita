@@ -9,8 +9,8 @@ function module.getPath(str)
 end
 
 function module.register()  
-     --module.module.m:subscribe(module.config.endpoint .. config.ID.."/#",0,function(conn) end)
-     module.m:subscribe(module.config.endpoint .. module.config.ID.."/relay/#",0,function(conn) end)
+     module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/relay/#",0,function(conn) end)
+     module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/fan/#",0,function(conn) end)    
 end
 
 function module.errCallback(client, reason) 
@@ -61,6 +61,19 @@ function module.send(topic,message)
     module.m:publish(module.config.endpoint..module.config.ID.."/"..topic,message,0,0)
 end
 
+function module.controlFan(path,num,cmd,data)
+print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
+    if (cmd=="set") then
+        fan.set(data)
+    end
+end
+    --A
+    --threshold_max
+    --threshold_min
+
+    --M
+    --number 0-1024
+    
 
 function module.start(config, sensors)
     print("configuring message subsystem")
@@ -69,7 +82,9 @@ function module.start(config, sensors)
     module.m = mqtt.Client(module.config.ID, 120)
     module.sensors = sensors
     module.do_mqtt_connect()
-    module.dispatch[module.config.endpoint .. module.config.ID.."/relay"] = module.controlrelay
+    module.dispatch[module.config.endpoint .. module.config.ID.."/cmd/relay"] = module.controlrelay
+    module.dispatch[module.config.endpoint .. module.config.ID.."/cmd/fan"] = module.controlFan
+    
 end
 
 function module.controlrelay(path,num,cmd,data)
@@ -88,9 +103,10 @@ function module.controlrelay(path,num,cmd,data)
 end
 
 function module.sendMQTTData()
-    module.send("temperature",module.sensors.t)
-    module.send("humidity",module.sensors.h)
+    module.send("temperature",sensors.t)
+    module.send("humidity",sensors.h)
+    module.send("fan",fan.speed)
+    
 end
-
 
 return module

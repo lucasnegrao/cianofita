@@ -1,42 +1,29 @@
 -- file : application.lua
 local module = {} 
 
-local sensors = dofile("sensors.lc")
+sensors = dofile("sensors.lc")
 local message = dofile("message.lua")
 local config = dofile("config.lua")
 local time,time_useful = dofile("time.lua")
 local network = dofile("network.lua")
+fan = dofile("fan.lua")
 
-local function controlFan()
-    local max_out = 1024
-    local min_out = 250
-    local max_in = 40
-    local min_in = 15
-
-    local slope = (max_out - min_out) / (max_in - min_in)
-    local fanControl = min_out + slope * (sensors.t - min_in)
-    if fanControl > max_out then fanControl = max_out end
-    if fanControl < min_out then fanControl = min_out end
-    pwm.setduty(8, fanControl)
  
-    module.fanSpeed = fanControl
-    fanControl,max_out,min_out,max_in,min_in,slope = nil
-
-end
-    
 local function drawScreen()
 
-    if(tonumber(node.heap())) < 6*1024 then print("mem under 6kb "..node.heap()) end
+    if(tonumber(node.heap())) < 5*1024 then print("mem under 6kb "..node.heap()) end
+    
+    --if(message.status==true) then module.sendMQTTData() end
     
     sensors.refresh(module.dht_pin)
-    controlFan()
+  
     
     module.disp:firstPage()
     repeat
         module.disp:drawStr(0, 0, "temperature "..sensors.t.."C")
         module.disp:drawStr(0, 10, "humidity "..sensors.h.."%")    
         module.disp:drawStr(0, 20,time_useful.getPrintable())
-        if(network.status==true) then 
+        if(module.networkstatus==true) then 
             module.disp:drawStr(0, 40, wifi.sta.getip())
         else
             module.disp:drawStr(0, 40,  "@ " .. config.sta_cfg.ssid.."...")
@@ -45,7 +32,7 @@ local function drawScreen()
                 module.disp:drawStr(50, 50,  "mqtt ON")
                 
             end    
-        module.disp:drawStr(0, 50, "fan @"..tostring(module.fanSpeed))
+        module.disp:drawStr(0, 50, "fan @"..tostring(module.speed))
                 
     until module.disp:nextPage() == false
 end
@@ -53,18 +40,23 @@ end
 
 function module.timeOK()
     print("\ntime module started")
-    print("time is "..time_useful.getPrintable()) 
-    print("\nregistering relays")
-    module.relays={}
-    Relay = dofile('relay.lua')
-    --time = nil
-    module.registerRelays(module.relaysCallback)
+    print("time is "..time_useful.getPrintable())
+    if(relays==nil) then
+        print("\nregistering relays")
+        module.relays={}
+        Relay = dofile('relay.lua')
+        module.registerRelays(module.relaysCallback)
+    end
  end
 
 function module.networkCb()
     print("network connected")
     print("\nstarting time module...")
     time.start(config.ntp,module.timeOK,config.timezone)
+    time.start = nil
+    network = nil
+    module.networkstatus = true
+    config.sta_cfg = nil
 end
 
 function module.registerRelays(cb)
@@ -85,6 +77,8 @@ function module.relaysCallback()
 
     print("\nstarting message module...")
     message.start(config.mqtt,sensors)
+
+    module.registerRelays = nil
    
     Relay = nil
     config = nil
@@ -98,10 +92,8 @@ function module.start()
     
     module.dht_pin = config.dht_pin
     sensors.refresh(module.dht_pin)
-    
-    local sla = 0x3C
     i2c.setup(0, config.OLED.SDA, config.OLED.SCL, i2c.SLOW)
-    module.disp = u8g.ssd1306_128x64_i2c(sla)
+    module.disp = u8g.ssd1306_128x64_i2c(0x3C)
     module.disp:setFont(u8g.font_6x10)
     module.disp:setFontRefHeightExtendedText()
     module.disp:setDefaultForegroundColor()
@@ -119,17 +111,15 @@ function module.start()
         module.disp:drawStr(0,70,"00000000000000000000")
       until module.disp:nextPage() == false
 
-      print("connect to network...")   
-      network.start(config.sta_cfg,module.networkCb) 
-      tmr.create():alarm(5000,tmr.ALARM_AUTO,drawScreen)
-
       print("initalizing fan control...")   
-      
-      gpio.mode(8, gpio.OUTPUT)
-      gpio.write(8, gpio.LOW)
-      pwm.setup(8, 50, 0)
+      fan.start(8,15,30,true)
 
-    collectgarbage()
+     print("connect to network...")   
+     network.start(config.sta_cfg,module.networkCb) 
+     tmr.create():alarm(5000,tmr.ALARM_AUTO,drawScreen)
+     fan.start = nil
+     network.start = nil
+     collectgarbage()
  end
 
 return module  
