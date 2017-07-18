@@ -5,7 +5,7 @@ var net = require('net')
 
 //send_del_file("0123456789");
 //send_new_file("node.penis\n0123456789\njambo\n");
-var fileToSend = '/Users/lucasnegrao/development/nodemcu/old/reset.lua'
+var fileToSend = '/Users/lucasnegrao/development/nodemcu/config.lua'
 var filename;
 fs.readFile(fileToSend, (err, data) => {
   if (err) throw err;
@@ -68,7 +68,7 @@ function send(buf) {
 
 module.client = new net.Socket();
 
-module.client.connect(7532, '192.168.5.13', function() {
+module.client.connect(7532, '192.168.5.25', function() {
 	console.log('Connected');
 	//module.client.write('Hello, server! Love, Client.');
 });

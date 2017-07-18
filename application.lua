@@ -32,7 +32,7 @@ local function drawScreen()
                 module.disp:drawStr(50, 50,  "mqtt ON")
                 
             end    
-        module.disp:drawStr(0, 50, "fan @"..tostring(module.speed))
+        module.disp:drawStr(0, 50, "fan @"..tostring(fan.speed))
                 
     until module.disp:nextPage() == false
 end
@@ -112,7 +112,7 @@ function module.start()
       until module.disp:nextPage() == false
 
       print("initalizing fan control...")   
-      fan.start(8,15,30,true)
+      fan.start(8,30,15,true)
 
      print("connect to network...")   
      network.start(config.sta_cfg,module.networkCb) 

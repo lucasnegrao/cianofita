@@ -4,8 +4,8 @@ module = {}
 function module.set(data)
             print(data)
        if (string.sub(data,1,1)=='A') then
-            local min = tonumber(string.sub(data,3,4))
-            local max = tonumber(string.sub(data,6,7))
+            local max = tonumber(string.sub(data,3,4))
+            local min = tonumber(string.sub(data,6,7))
 
             module.setAuto(tonumber(max),tonumber(min))
        elseif (string.sub(data,1,1)=='M') then
@@ -51,7 +51,7 @@ end
 
 function module.setAuto(max_in,min_in)
     if(max_in == nil or min_in == nil) then return end
-    print("setting fan to automode low: @"..max_in.." high @"..min_in);
+    print("setting fan to automode high: @"..max_in.." low @"..min_in);
     module.max = max_in;
     module.min = min_in
     module.auto = true
@@ -71,7 +71,7 @@ end
 
 function module.runAuto(max_in,min_in)
     if(module.max==nil or module.min==nil) then
-        print("you have to call start(pin,,max,min) first!");
+        print("you have to call start(pin,max,min) first!");
         return
     end
     

@@ -74,11 +74,12 @@ function module.controlAdmin(path,num,cmd,data)
 print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
     if (cmd=="on") then
          local fd =  file.open("maintenance.mode", "w")
-    if fd then
-      fd:write("true")
-      fd:close()
-      fd=nil
-    end
+        if fd then
+          fd:write("true")
+          fd:close()
+          fd=nil
+        end
+    node.restart()
     end
 end
     --A

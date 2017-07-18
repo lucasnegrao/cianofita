@@ -1,6 +1,6 @@
 -- file : init.lua
---local do_file = "application.lua"
-local do_file="maintenance.lua"
+local do_file = "application.lua"
+--local do_file="maintenance.lua"
 print("checking for maintenance mode status...")
     
 local fd = file.open("maintenance.mode", "r")
