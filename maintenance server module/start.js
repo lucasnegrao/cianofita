@@ -3,9 +3,7 @@ var fs = require('fs')
 var path = require('path')
 var net = require('net')
 
-//send_del_file("0123456789");
-//send_new_file("node.penis\n0123456789\njambo\n");
-var fileToSend = '/Users/lucasnegrao/development/nodemcu/config.lua'
+var fileToSend = '/Users/lucasnegrao/development/nodemcu/fan.lua'
 var filename;
 fs.readFile(fileToSend, (err, data) => {
   if (err) throw err;
@@ -20,7 +18,7 @@ var separator = String.fromCharCode(254)
 function sendFileChunks(data,chunk){
     
     if(chunk>=data.length) {
-        send_do_file(filename)
+        //send_do_file(filename)
     return
     }
     

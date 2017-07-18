@@ -2,7 +2,7 @@
 local module = {}
 
 module.name = "cianofita"
-module.id = "one"
+module.id = "two"
 
 module.sta_cfg = {}  
 module.sta_cfg.ssid = "peanuts"

@@ -63,7 +63,7 @@ function module.setAuto(max_in,min_in)
 
     local fd =  file.open("fan.auto", "w")
     if fd then
-      fd:write("A("..string.format( "%02d", min_in)..","..string.format( "%02d", max_in)..")")
+      fd:write("A("..string.format( "%02d", max_in)..","..string.format( "%02d", min_in)..")")
       fd:close()
       fd=nil
     end
