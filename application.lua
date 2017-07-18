@@ -1,4 +1,5 @@
 -- file : application.lua
+
 local module = {} 
 
 sensors = dofile("sensors.lc")
@@ -7,7 +8,6 @@ local config = dofile("config.lua")
 local time,time_useful = dofile("time.lua")
 local network = dofile("network.lua")
 fan = dofile("fan.lua")
-
  
 local function drawScreen()
 
@@ -119,6 +119,7 @@ function module.start()
      tmr.create():alarm(5000,tmr.ALARM_AUTO,drawScreen)
      fan.start = nil
      network.start = nil
+     module.start=nil
      collectgarbage()
  end
 

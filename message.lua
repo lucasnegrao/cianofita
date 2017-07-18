@@ -10,7 +10,9 @@ end
 
 function module.register()  
      module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/relay/#",0,function(conn) end)
-     module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/fan/#",0,function(conn) end)    
+     module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/fan/#",0,function(conn) end)   
+     module.m:subscribe(module.config.endpoint .. module.config.ID.."/cmd/admin/#",0,function(conn) end)   
+      
 end
 
 function module.errCallback(client, reason) 
@@ -67,6 +69,18 @@ print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
         fan.set(data)
     end
 end
+
+function module.controlAdmin(path,num,cmd,data)
+print("getcmd topic: "..path.." num "..num.." cmd "..cmd)
+    if (cmd=="on") then
+         local fd =  file.open("maintenance.mode", "w")
+    if fd then
+      fd:write("true")
+      fd:close()
+      fd=nil
+    end
+    end
+end
     --A
     --threshold_max
     --threshold_min
@@ -84,6 +98,7 @@ function module.start(config, sensors)
     module.do_mqtt_connect()
     module.dispatch[module.config.endpoint .. module.config.ID.."/cmd/relay"] = module.controlrelay
     module.dispatch[module.config.endpoint .. module.config.ID.."/cmd/fan"] = module.controlFan
+    module.dispatch[module.config.endpoint .. module.config.ID.."/cmd/admin"] = module.controlAdmin
     
 end
 
